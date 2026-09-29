@@ -5,40 +5,36 @@ import dungeonescape.model.Player;
 import dungeonescape.model.Room;
 import dungeonescape.structures.Stack;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 /**
- * Handles everything about moving the player between rooms.
- * Uses the dungeon graph: rooms are vertices, connections are edges.
+ * Handles moving the player and undoing moves.
+ * RULE: the room on TOP of the history stack is always the player's current room.
  */
 public class MovementManager {
 
     private Dungeon dungeon;
     private Player player;
-    private Stack<Room> history;    // NEW: movement history (the undo stack)
+    private Stack<Room> history;
 
     public MovementManager(Dungeon dungeon, Player player) {
         this.dungeon = dungeon;
         this.player = player;
         this.history = new Stack<>();
-        history.push(player.getCurrentRoom());   // NEW: the entrance is the first entry
+        history.push(player.getCurrentRoom());
     }
 
-    /** Neighbours of the current room, read from our Graph's adjacency list. */
     public List<Room> getAvailableMoves() {
         return dungeon.getGraph().getNeighbors(player.getCurrentRoom().getId());
     }
 
-    // Prints the current room and its details
     public void showCurrentRoom() {
         Room room = player.getCurrentRoom();
         System.out.println("Current Room: " + room.getName());
         System.out.println(room.getDescription());
     }
 
-    // Prints the numbered list of connected rooms
     public void showConnections() {
         List<Room> moves = getAvailableMoves();
         System.out.println("Connected Rooms:");
@@ -47,11 +43,8 @@ public class MovementManager {
         }
     }
 
-    /**
-     * Asks the player which room to go to and moves them there.
-     * Handles non-numeric input and out-of-range numbers without crashing.
-     */
-    public void handleMove(Scanner scanner) {
+    /** Returns true if the player moved to a new room. */
+    public boolean handleMove(Scanner scanner) {
         List<Room> moves = getAvailableMoves();
 
         System.out.println();
@@ -66,24 +59,22 @@ public class MovementManager {
             choice = Integer.parseInt(input);
         } catch (NumberFormatException e) {
             System.out.println("Invalid input. Please enter a number.");
-            return;
+            return false;
         }
 
         if (choice == 0) {
             System.out.println("Move cancelled.");
-            return;
+            return false;
         }
         if (choice < 1 || choice > moves.size()) {
             System.out.println("Invalid choice. Pick a number from 1 to " + moves.size() + ".");
-            return;
+            return false;
         }
 
-        // Valid choice: the list only contains connected rooms,
-        // so the player can never move to an unconnected room.
         Room from = player.getCurrentRoom();
         Room to = moves.get(choice - 1);
         player.setCurrentRoom(to);
-        history.push(to);                       // NEW: remember the new room
+        history.push(to);
 
         System.out.println("\nYou moved from:");
         System.out.println(from.getName());
@@ -93,21 +84,18 @@ public class MovementManager {
         System.out.println();
         showCurrentRoom();
         showConnections();
+        return true;
     }
-    /**
-     * NEW: Undo the last move.
-     * pop()  removes the current room from the top of the stack.
-     * peek() then reads the previous room, which is now the top.
-     */
-    public void handleUndo() {
-        // Only the entrance is left, so there is nowhere to go back to.
+
+    /** Returns true if the player moved back to the previous room. */
+    public boolean handleUndo() {
         if (history.size() <= 1) {
             System.out.println("There is no previous room to return to.");
-            return;
+            return false;
         }
 
-        history.pop();                          // remove the current room
-        Room previous = history.peek();         // the room we came from
+        history.pop();
+        Room previous = history.peek();
         player.setCurrentRoom(previous);
 
         System.out.println("You moved back to " + previous.getName() + ".");
@@ -117,9 +105,9 @@ public class MovementManager {
 
         System.out.println("\nStack:");
         history.display();
+        return true;
     }
 
-    /** NEW: Shows the history in two ways so the difference is clear. */
     public void showHistory() {
         System.out.println("\n========== MOVEMENT HISTORY ==========");
         System.out.println("(Chronological order: oldest room first)\n");

@@ -9,13 +9,14 @@ import java.util.List;
  */
 public class Room {
 
-    private int id;                        // Unique number, used to find the room
-    private String name;                   // Short name shown to the player
-    private RoomType type;                 // What kind of room this is
-    private String description;            // Text describing the room
-    private List<Integer> connections;     // IDs of rooms directly connected to this one
+    private int id;
+    private String name;
+    private RoomType type;
+    private String description;
+    private List<Integer> connections;
     private String enemyName;              // null if there is no enemy
     private String itemName;               // null if there is no item
+    private boolean itemTaken;             // NEW: true once the item was picked up
 
     public Room(int id, String name, RoomType type, String description,
                 String enemyName, String itemName) {
@@ -25,10 +26,10 @@ public class Room {
         this.description = description;
         this.enemyName = enemyName;
         this.itemName = itemName;
+        this.itemTaken = false;
         this.connections = new ArrayList<>();
     }
 
-    // Adds a connection to another room (ignores duplicates)
     public void addConnection(int roomId) {
         if (!connections.contains(roomId)) {
             connections.add(roomId);
@@ -36,7 +37,13 @@ public class Room {
     }
 
     public boolean hasEnemy() { return enemyName != null; }
-    public boolean hasItem()  { return itemName != null; }
+
+    // CHANGED: a room only "has an item" while the item is still lying there
+    public boolean hasItem()  { return itemName != null && !itemTaken; }
+
+    // NEW: called after the player picks the item up
+    public void markItemTaken() { itemTaken = true; }
+    public boolean isItemTaken() { return itemTaken; }
 
     public int getId()                     { return id; }
     public String getName()                { return name; }

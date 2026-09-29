@@ -27,6 +27,7 @@ public class Game {
 
         Player player = new Player(name, dungeon.getStartRoom());
         MovementManager movement = new MovementManager(dungeon, player);
+        InventoryManager inventory = new InventoryManager(player);
 
         System.out.println("\nWelcome, " + player.getName() + "!\n");
         movement.showCurrentRoom();
@@ -43,33 +44,50 @@ public class Game {
             System.out.println("2. Undo Last Move");
             System.out.println("3. View Current Room");
             System.out.println("4. View Movement History");
-            System.out.println("5. Exit Game");
+            System.out.println("5. View Inventory");
+            System.out.println("6. Search Inventory");
+            System.out.println("7. Use/Remove Item");
+            System.out.println("8. Exit Game");
             System.out.print("\nEnter choice: ");
 
             String input = scanner.nextLine().trim();
 
             switch (input) {
                 case "1":
-                    movement.handleMove(scanner);
+                    if (movement.handleMove(scanner)) {
+                        inventory.offerRoomItem(player.getCurrentRoom(), scanner);
+                    }
                     break;
                 case "2":
                     System.out.println();
-                    movement.handleUndo();
+                    if (movement.handleUndo()) {
+                        inventory.offerRoomItem(player.getCurrentRoom(), scanner);
+                    }
                     break;
                 case "3":
                     System.out.println();
                     movement.showCurrentRoom();
                     movement.showConnections();
+                    inventory.offerRoomItem(player.getCurrentRoom(), scanner);
                     break;
                 case "4":
                     movement.showHistory();
                     break;
                 case "5":
+                    inventory.showInventory();
+                    break;
+                case "6":
+                    inventory.searchInventory(scanner);
+                    break;
+                case "7":
+                    inventory.useOrRemoveItem(scanner);
+                    break;
+                case "8":
                     System.out.println("Thanks for playing, " + player.getName() + "!");
                     running = false;
                     break;
                 default:
-                    System.out.println("Invalid choice. Enter 1, 2, 3, 4 or 5.");
+                    System.out.println("Invalid choice. Enter a number from 1 to 8.");
             }
         }
         scanner.close();
