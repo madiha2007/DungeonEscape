@@ -1,5 +1,7 @@
 package dungeonescape.model;
 
+import dungeonescape.structures.Graph;      // CHANGE 1: new import
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,11 +13,13 @@ import java.util.List;
 public class Dungeon {
 
     private List<Room> rooms;
+    private Graph graph;
     private int startRoomId;
     private int exitRoomId;
 
     public Dungeon() {
         rooms = new ArrayList<>();
+        graph = new Graph();                // CHANGE 3: create it BEFORE buildDungeon()
         buildDungeon();
     }
 
@@ -112,12 +116,14 @@ public class Dungeon {
 
     public void addRoom(Room room) {
         rooms.add(room);
+        graph.addRoom(room);
     }
 
     // Two-way connection (an undirected edge in graph terms)
     public void connectRooms(int roomId1, int roomId2) {
         getRoom(roomId1).addConnection(roomId2);
         getRoom(roomId2).addConnection(roomId1);
+        graph.addConnection(roomId1, roomId2);   // CHANGE 4b: register the edge
     }
 
     public Room getRoom(int id) {
