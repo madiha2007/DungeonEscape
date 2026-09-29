@@ -3,6 +3,7 @@ package dungeonescape.game;
 import dungeonescape.model.Dungeon;
 import dungeonescape.model.Player;
 import dungeonescape.model.Room;
+import dungeonescape.structures.Stack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,23 +17,18 @@ public class MovementManager {
 
     private Dungeon dungeon;
     private Player player;
+    private Stack<Room> history;    // NEW: movement history (the undo stack)
 
     public MovementManager(Dungeon dungeon, Player player) {
         this.dungeon = dungeon;
         this.player = player;
+        this.history = new Stack<>();
+        history.push(player.getCurrentRoom());   // NEW: the entrance is the first entry
     }
 
-    /**
-     * Returns the neighbours of the player's current room.
-     * This is the ONLY place that reads the adjacency list.
-     * (If your Step 3 Graph has its own neighbour method, change it here.)
-     */
+    /** Neighbours of the current room, read from our Graph's adjacency list. */
     public List<Room> getAvailableMoves() {
-        List<Room> moves = new ArrayList<>();
-        for (int neighbourId : player.getCurrentRoom().getConnections()) {
-            moves.add(dungeon.getRoom(neighbourId));
-        }
-        return moves;
+        return dungeon.getGraph().getNeighbors(player.getCurrentRoom().getId());
     }
 
     // Prints the current room and its details
@@ -87,6 +83,7 @@ public class MovementManager {
         Room from = player.getCurrentRoom();
         Room to = moves.get(choice - 1);
         player.setCurrentRoom(to);
+        history.push(to);                       // NEW: remember the new room
 
         System.out.println("\nYou moved from:");
         System.out.println(from.getName());
@@ -96,5 +93,49 @@ public class MovementManager {
         System.out.println();
         showCurrentRoom();
         showConnections();
+    }
+    /**
+     * NEW: Undo the last move.
+     * pop()  removes the current room from the top of the stack.
+     * peek() then reads the previous room, which is now the top.
+     */
+    public void handleUndo() {
+        // Only the entrance is left, so there is nowhere to go back to.
+        if (history.size() <= 1) {
+            System.out.println("There is no previous room to return to.");
+            return;
+        }
+
+        history.pop();                          // remove the current room
+        Room previous = history.peek();         // the room we came from
+        player.setCurrentRoom(previous);
+
+        System.out.println("You moved back to " + previous.getName() + ".");
+        System.out.println();
+        showCurrentRoom();
+        showConnections();
+
+        System.out.println("\nStack:");
+        history.display();
+    }
+
+    /** NEW: Shows the history in two ways so the difference is clear. */
+    public void showHistory() {
+        System.out.println("\n========== MOVEMENT HISTORY ==========");
+        System.out.println("(Chronological order: oldest room first)\n");
+
+        List<Room> path = history.toListBottomToTop();
+        for (int i = 0; i < path.size(); i++) {
+            System.out.println(path.get(i).getName());
+            if (i < path.size() - 1) {
+                System.out.println("↓");
+            }
+        }
+
+        System.out.println("\n---------- THE STACK ITSELF ----------");
+        System.out.println("(Top = newest room. This is what Undo pops.)");
+        history.display();
+        System.out.println("Stack size: " + history.size());
+        System.out.println("=======================================");
     }
 }

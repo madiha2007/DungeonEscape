@@ -134,4 +134,8 @@ public class Dungeon {
     public Room getExitRoom()  { return getRoom(exitRoomId); }
     public int getTotalRooms() { return rooms.size(); }
     public List<Room> getRooms() { return rooms; }
+
+    public Graph getGraph() { return graph; }    // new getter
+
+    // ... getRoom, getStartRoom, getExitRoom, getTotalRooms, getRooms unchanged ...
 }

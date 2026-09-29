@@ -11,7 +11,6 @@ import java.util.Scanner;
 public class Game {
 
     public void start() {
-        // Same banner as Step 1
         System.out.println("==========================");
         System.out.println("    DUNGEON ESCAPE");
         System.out.println(" DSA-Based Adventure Game");
@@ -26,7 +25,6 @@ public class Game {
             name = "Adventurer";
         }
 
-        // The player starts at the dungeon's entrance room
         Player player = new Player(name, dungeon.getStartRoom());
         MovementManager movement = new MovementManager(dungeon, player);
 
@@ -36,13 +34,16 @@ public class Game {
 
         boolean running = true;
         while (running) {
-            System.out.println("\n================================");
-            System.out.println("DUNGEON ESCAPE");
-            System.out.println("Current Room: " + player.getCurrentRoom().getName());
+            System.out.println("\n====================================");
+            System.out.println("          DUNGEON ESCAPE");
+            System.out.println("====================================");
+            System.out.println("\nCurrent Room: " + player.getCurrentRoom().getName());
             System.out.println();
             System.out.println("1. Move");
-            System.out.println("2. View Current Room");
-            System.out.println("3. Exit Game");
+            System.out.println("2. Undo Last Move");
+            System.out.println("3. View Current Room");
+            System.out.println("4. View Movement History");
+            System.out.println("5. Exit Game");
             System.out.print("\nEnter choice: ");
 
             String input = scanner.nextLine().trim();
@@ -53,15 +54,22 @@ public class Game {
                     break;
                 case "2":
                     System.out.println();
+                    movement.handleUndo();
+                    break;
+                case "3":
+                    System.out.println();
                     movement.showCurrentRoom();
                     movement.showConnections();
                     break;
-                case "3":
+                case "4":
+                    movement.showHistory();
+                    break;
+                case "5":
                     System.out.println("Thanks for playing, " + player.getName() + "!");
                     running = false;
                     break;
                 default:
-                    System.out.println("Invalid choice. Enter 1, 2 or 3.");
+                    System.out.println("Invalid choice. Enter 1, 2, 3, 4 or 5.");
             }
         }
         scanner.close();
